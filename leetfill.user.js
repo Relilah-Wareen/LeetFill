@@ -475,6 +475,49 @@
                 'equals':    { params: ['Object obj'], ret: 'boolean' }
             }
         },
+        'List': {
+            methods: ['add', 'get', 'set', 'remove', 'size', 'isEmpty', 'clear', 'contains',
+                      'indexOf', 'lastIndexOf', 'toArray', 'addAll', 'removeAll', 'retainAll',
+                      'subList', 'iterator', 'forEach', 'stream', 'sort'],
+            signatures: {
+                'add':    { params: ['E element'], ret: 'boolean' },
+                'get':    { params: ['int index'], ret: 'E' },
+                'set':    { params: ['int index', 'E element'], ret: 'E' },
+                'remove': { params: ['int index'], ret: 'E' },
+                'size':   { params: [], ret: 'int' },
+                'contains': { params: ['Object o'], ret: 'boolean' },
+                'isEmpty': { params: [], ret: 'boolean' },
+                'clear':  { params: [], ret: 'void' }
+            }
+        },
+        'Map': {
+            methods: ['put', 'get', 'remove', 'containsKey', 'containsValue', 'size', 'isEmpty',
+                      'clear', 'keySet', 'values', 'entrySet', 'getOrDefault', 'putIfAbsent',
+                      'replace', 'forEach', 'computeIfAbsent', 'compute', 'merge'],
+            signatures: {
+                'put':          { params: ['K key', 'V value'], ret: 'V' },
+                'get':          { params: ['Object key'], ret: 'V' },
+                'remove':       { params: ['Object key'], ret: 'V' },
+                'containsKey':  { params: ['Object key'], ret: 'boolean' },
+                'containsValue':{ params: ['Object value'], ret: 'boolean' },
+                'getOrDefault': { params: ['Object key', 'V defaultValue'], ret: 'V' },
+                'keySet':       { params: [], ret: 'Set<K>' },
+                'values':       { params: [], ret: 'Collection<V>' },
+                'entrySet':     { params: [], ret: 'Set<Map.Entry<K,V>>' }
+            }
+        },
+        'Set': {
+            methods: ['add', 'remove', 'contains', 'size', 'isEmpty', 'clear', 'iterator',
+                      'addAll', 'removeAll', 'retainAll', 'toArray', 'forEach', 'stream'],
+            signatures: {
+                'add':      { params: ['E element'], ret: 'boolean' },
+                'remove':   { params: ['Object o'], ret: 'boolean' },
+                'contains': { params: ['Object o'], ret: 'boolean' },
+                'size':     { params: [], ret: 'int' },
+                'isEmpty':  { params: [], ret: 'boolean' },
+                'clear':    { params: [], ret: 'void' }
+            }
+        },
         'StringBuilder': {
             methods: ['append', 'insert', 'delete', 'deleteCharAt', 'replace', 'reverse',
                       'length', 'charAt', 'setCharAt', 'toString', 'substring'],
@@ -837,17 +880,21 @@
 
     function buildCppVarTable(code, model, position) {
         const varTable = new Map();
-        // Match: [const/static] Type<...> *& varName [= init];
-        const re = /(?:(?:const|static|unsigned|signed)\s+)*(?:unsigned\s+)?([a-zA-Z_]\w*(?:\s*<[^>]*>)?)\s*[*&]*\s+([a-zA-Z_]\w*)\s*(?:\[[^\]]*\])?\s*(?:=|;|,|\)|\{)/g;
+        // Match: [const/static] Type<...> *& varName [= init] or constructor Type var(args)
+        const re = /(?:(?:const|static|unsigned|signed)\s+)*(?:unsigned\s+)?([a-zA-Z_]\w*(?:\s*<[^>]*>)?)\s*[*&]*\s+([a-zA-Z_]\w*)\s*(?:\[[^\]]*\])?\s*(?:=|;|,|\)|\{|\(|)/g;
+
+        const RETURN_TYPE_RE = /^(void|int|long|double|float|char|bool|auto|short|unsigned|signed|long\s+long)$/;
 
         let m;
         while ((m = re.exec(code)) !== null) {
             const rawType = m[1].trim();
             const name = m[2];
             if (KEYWORD_BLOCKLIST.has(name)) continue;
-            // Skip function definitions: name followed by (
-            const after = code.substring(m.index + m[0].length);
-            if (/^\s*\(/.test(after)) continue;
+
+            // ctor-call detection: if match ends with '(' and type is a simple
+            // return-type keyword, it's likely a function definition — skip it.
+            // Template types ending with '(' (e.g. "vector<int> sum(") are kept.
+            if (rawType.indexOf('<') === -1 && m[0].endsWith('(') && RETURN_TYPE_RE.test(rawType)) continue;
             varTable.set(name, {
                 type: rawType,
                 normalizedType: normalizeType(rawType)
@@ -915,7 +962,7 @@
 
     function buildPythonVarTable(code, model, position) {
         const varTable = new Map();
-        // Python type hints: var: Type = value
+        // Type-hint declarations: var: Type = value
         const hintRe = /([a-zA-Z_]\w*)\s*:\s*([a-zA-Z_]\w*(?:\[[^\]]*\])?)\s*(?:=)/g;
         let m;
         while ((m = hintRe.exec(code)) !== null) {
@@ -928,24 +975,32 @@
             });
         }
 
-        // Common patterns without type hints
-        // nums = [], list(), set(), dict(), {}
-        const inferRe = /([a-zA-Z_]\w*)\s*=\s*(\[\s*\]|list\s*\(|set\s*\(|dict\s*\(|\{\s*\}|deque\s*\()/g;
+        // Infer type from assignment: var = [] / [1,2,3] / {} / {1,2} / {'a':1} / set() / dict() / deque()
+        const inferRe = /([a-zA-Z_]\w*)\s*=\s*(\[|list\s*\(|deque\s*\(|set\s*\(|dict\s*\(|\{)/g;
         while ((m = inferRe.exec(code)) !== null) {
             const name = m[1];
+            if (KEYWORD_BLOCKLIST.has(name) || varTable.has(name)) continue;
             const init = m[2];
-            if (KEYWORD_BLOCKLIST.has(name)) continue;
+
             let inferredType = 'list';
-            if (/set\s*\(/.test(init)) inferredType = 'set';
-            else if (/dict\s*\(/.test(init)) inferredType = 'dict';
-            else if (/\{\s*\}/.test(init)) inferredType = 'dict';
-            else if (/deque\s*\(/.test(init)) inferredType = 'deque';
-            if (!varTable.has(name)) {
-                varTable.set(name, {
-                    type: inferredType,
-                    normalizedType: inferredType
-                });
+            if (init === '{') {
+                // Peek ahead: if content has ':' it's a dict, otherwise set
+                const after = code.substring(m.index + m[0].length);
+                const close = after.indexOf('}');
+                const content = close !== -1 ? after.substring(0, close) : '';
+                inferredType = /:\s/.test(content) ? 'dict' : 'set';
+            } else if (init.startsWith('set')) {
+                inferredType = 'set';
+            } else if (init.startsWith('dict')) {
+                inferredType = 'dict';
+            } else if (init.startsWith('deque')) {
+                inferredType = 'deque';
             }
+
+            varTable.set(name, {
+                type: inferredType,
+                normalizedType: inferredType
+            });
         }
 
         return varTable;
