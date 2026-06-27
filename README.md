@@ -1,47 +1,8 @@
-<details open>
-<summary><b>English</b></summary>
+<div align="center">
 
-## LeetFill
+中文 | [English](./README_en.md)
 
-Tampermonkey userscript that adds **context-aware autocompletion** to LeetCode's code editor for **C++, Java, and Python**.
-
-### What it does
-
-| Feature | C++ | Java | Python |
-|---|---|---|---|
-| Container methods (`.push_back`, `.add`, `.append`...) | ✔ | ✔ | ✔ |
-| Algorithm snippets (`for`, `while`, `dfs`, `bfs`, `binary_search`) | ✔ | ✔ | ✔ |
-| Variable type tracking (`vector<int> nums; nums.` → vector methods) | ✔ | ✔ | ✔ |
-| Function signature hints (parameter types inside parentheses) | ✔ | — | ✔ |
-| Hover to see type methods | ✔ | ✔ | ✔ |
-
-Supports both **leetcode.com** and **leetcode.cn**.
-
-### Install
-
-**Method 1 — Click to install**
-
-1. Install the [Tampermonkey](https://www.tampermonkey.net/) browser extension
-2. Click [leetfill.user.js](leetfill.user.js) → Tampermonkey will pop up an install dialog → click **Install**
-
-**Method 2 — Copy & paste**
-
-1. Open Tampermonkey dashboard → click **"+ (Create script)"**
-2. Copy all content from [leetfill.user.js](leetfill.user.js) and paste into the editor
-3. Press **Ctrl+S** to save
-
-Open any LeetCode problem page, type `.` or `->` to see suggestions.
-
-> No configuration needed.
-
----
-
-<p style="color:#8b949e;font-size:13px">v1.0.0 · MIT License · <a href="https://github.com/Relilah-Wareen/LeetFill">GitHub</a></p>
-
-</details>
-
-<details>
-<summary><b>中文</b></summary>
+</div>
 
 ## LeetFill
 
@@ -76,8 +37,8 @@ Open any LeetCode problem page, type `.` or `->` to see suggestions.
 
 > 无需任何配置，打开即生效。
 
+⭐ **如果觉得好用，加个 star 吧，这对我真的很重要！**
+
 ---
 
-<p style="color:#8b949e;font-size:13px">v1.0.0 · MIT 协议 · <a href="https://github.com/Relilah-Wareen/LeetFill">GitHub</a></p>
-
-</details>
+<p align="center">v1.0.0 · MIT 协议 · <a href="https://github.com/Relilah-Wareen/LeetFill">GitHub</a></p>
