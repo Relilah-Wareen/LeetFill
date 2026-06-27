@@ -1110,7 +1110,7 @@
             } catch (e) { /* ignore parse errors during live editing */ }
         };
 
-        const debouncedBuild = debounce(buildIndex, 600);
+        const debouncedBuild = debounce(buildIndex, 300);
 
         monaco.languages.registerCompletionItemProvider('cpp', {
             triggerCharacters: ['.', '>', ':', '<', '"'],
@@ -1147,57 +1147,54 @@
                     const memberMatch = textUntil.trim().match(/([a-zA-Z_]\w*)\s*(\.|->|::)$/);
                     if (memberMatch) {
                         const varName = memberMatch[1];
-                        const varInfo = varTable.get(varName);
+                        let varInfo = varTable.get(varName);
+                        // varTable may be stale — force a sync rebuild on miss
+                        if (!varInfo) {
+                            buildIndex(model);
+                            varInfo = varTable.get(varName);
+                        }
                         if (varInfo) {
                             const api = CPP_API[varInfo.normalizedType];
                             if (api && api.methods) {
                                 return { suggestions: makeMemberSuggestions(api.methods, monaco, range) };
                             }
                         }
-                        // If var not in table, try matching against known types directly
-                        // e.g. "vector<int> nums; nums." -> should still work
-                        const knownType = CPP_API[memberMatch[1]];
+                        const knownType = CPP_API[varName];
                         if (knownType) {
                             return { suggestions: makeMemberSuggestions(knownType.methods, monaco, range) };
                         }
                         return { suggestions: [] };
                     }
 
-                    // Check for :: scope access (e.g. std::)
+                    // --- Scope access: std:: ---
                     const scopeMatch = textUntil.trim().match(/([a-zA-Z_]\w*)::$/);
                     if (scopeMatch) {
-                        const nsName = scopeMatch[1];
-                        if (nsName === 'std') {
-                            // Return C++ utility functions
-                            const suggestions = CPP_UTIL_FUNCTIONS.map(f => ({
-                                label: f,
-                                kind: monaco.languages.CompletionItemKind.Function,
-                                insertText: f,
-                                sortText: '05_' + f,
-                                range: range
-                            }));
-                            return { suggestions };
+                        if (scopeMatch[1] === 'std') {
+                            return {
+                                suggestions: CPP_UTIL_FUNCTIONS.map(f => ({
+                                    label: f,
+                                    kind: monaco.languages.CompletionItemKind.Function,
+                                    insertText: f,
+                                    sortText: '05_' + f,
+                                    range: range
+                                }))
+                            };
                         }
                         return { suggestions: [] };
                     }
 
-                    // No trigger character: global suggestions
+                    // --- Global suggestions ---
                     const suggestions = [];
                     const seen = new Set();
-
-                    // Variable name suggestions
                     for (const s of makeVariableSuggestions(varTable, monaco, range)) {
                         if (!seen.has(s.label)) { suggestions.push(s); seen.add(s.label); }
                     }
-                    // Snippet suggestions
                     for (const s of makeSnippetSuggestions(CPP_SNIPPETS, monaco, range)) {
                         if (!seen.has(s.label)) { suggestions.push(s); seen.add(s.label); }
                     }
-                    // Type name suggestions
                     for (const s of makeTypeSuggestions(CPP_API, monaco, range)) {
                         if (!seen.has(s.label)) { suggestions.push(s); seen.add(s.label); }
                     }
-
                     return { suggestions };
                 } catch (e) {
                     return { suggestions: [] };
@@ -1241,7 +1238,7 @@
             } catch (e) {}
         };
 
-        const debouncedBuild = debounce(buildIndex, 600);
+        const debouncedBuild = debounce(buildIndex, 300);
 
         monaco.languages.registerCompletionItemProvider('java', {
             triggerCharacters: ['.'],
@@ -1258,14 +1255,17 @@
                     const memberMatch = textUntil.trim().match(/([a-zA-Z_]\w*)\.$/);
                     if (memberMatch) {
                         const varName = memberMatch[1];
-                        const varInfo = varTable.get(varName);
+                        let varInfo = varTable.get(varName);
+                        if (!varInfo) {
+                            buildIndex(model);
+                            varInfo = varTable.get(varName);
+                        }
                         if (varInfo) {
                             const api = JAVA_API[varInfo.normalizedType];
                             if (api && api.methods) {
                                 return { suggestions: makeMemberSuggestions(api.methods, monaco, range) };
                             }
                         }
-                        // Check if it's a static class name directly
                         const knownType = JAVA_API[varName];
                         if (knownType) {
                             return { suggestions: makeMemberSuggestions(knownType.methods, monaco, range) };
@@ -1325,7 +1325,7 @@
             } catch (e) {}
         };
 
-        const debouncedBuild = debounce(buildIndex, 600);
+        const debouncedBuild = debounce(buildIndex, 300);
 
         monaco.languages.registerCompletionItemProvider('python', {
             triggerCharacters: ['.'],
@@ -1342,14 +1342,17 @@
                     const memberMatch = textUntil.trim().match(/([a-zA-Z_]\w*)\.$/);
                     if (memberMatch) {
                         const varName = memberMatch[1];
-                        const varInfo = varTable.get(varName);
+                        let varInfo = varTable.get(varName);
+                        if (!varInfo) {
+                            buildIndex(model);
+                            varInfo = varTable.get(varName);
+                        }
                         if (varInfo) {
                             const api = PYTHON_API[varInfo.normalizedType];
                             if (api && api.methods) {
                                 return { suggestions: makeMemberSuggestions(api.methods, monaco, range) };
                             }
                         }
-                        // Check if it's a known type name used as a literal
                         const knownType = PYTHON_API[varName];
                         if (knownType) {
                             return { suggestions: makeMemberSuggestions(knownType.methods, monaco, range) };

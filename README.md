@@ -1,27 +1,5 @@
-<style>
-  .lang-tabs { display: flex; gap: 0; margin-bottom: 0; }
-  .lang-tabs input { display: none; }
-  .lang-tabs label {
-    padding: 6px 18px; cursor: pointer; border: 1px solid #30363d;
-    background: #0d1117; color: #8b949e; font-size: 14px; border-radius: 6px 6px 0 0;
-    margin-right: -1px;
-  }
-  .lang-tabs input:checked + label { background: #1a1a2e; color: #e94560; border-bottom-color: #1a1a2e; font-weight: 600; }
-  .lang-panel { display: none; border: 1px solid #30363d; border-radius: 0 6px 6px 6px; padding: 20px 24px; background: #0d1117; }
-  #tab-en:checked ~ #panel-en,
-  #tab-zh:checked ~ #panel-zh { display: block; }
-  .lang-tabs label:hover { color: #e94560; }
-</style>
-
-<input type="radio" name="lang" class="lang-tabs" id="tab-en" checked>
-<input type="radio" name="lang" class="lang-tabs" id="tab-zh">
-
-<div class="lang-tabs">
-  <label for="tab-en">English</label>
-  <label for="tab-zh">中文</label>
-</div>
-
-<div class="lang-panel" id="panel-en">
+<details open>
+<summary><b>English</b></summary>
 
 ## LeetFill
 
@@ -60,9 +38,10 @@ Open any LeetCode problem page, type `.` or `->` to see suggestions.
 
 <p style="color:#8b949e;font-size:13px">v1.0.0 · MIT License · <a href="https://github.com/Relilah-Wareen/LeetFill">GitHub</a></p>
 
-</div>
+</details>
 
-<div class="lang-panel" id="panel-zh">
+<details>
+<summary><b>中文</b></summary>
 
 ## LeetFill
 
@@ -101,4 +80,4 @@ Open any LeetCode problem page, type `.` or `->` to see suggestions.
 
 <p style="color:#8b949e;font-size:13px">v1.0.0 · MIT 协议 · <a href="https://github.com/Relilah-Wareen/LeetFill">GitHub</a></p>
 
-</div>
+</details>
