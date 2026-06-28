@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         LeetFill
 // @namespace    https://github.com/Relilah-Wareen/LeetFill
-// @version      1.0.1
+// @version      1.0.2
 // @description  Context-aware code completion for LeetCode's Monaco editor. Supports C++, Java, Python — container methods, algorithm snippets (for/while/dfs/bfs), variable type tracking, #include headers, and function signature hints.
 // @author       Relilah-Wareen
 // @license      MIT
@@ -1122,11 +1122,22 @@
 
     function registerCppCompletion(monaco) {
         let varTable = new Map();
+        let funcSet = new Set();
 
         const buildIndex = (model) => {
             try {
                 const code = model.getValue();
                 varTable = buildCppVarTable(code, model, { lineNumber: 99999, column: 1 });
+                // Extract function/method names: "word(" patterns, excluding keywords
+                funcSet = new Set();
+                const funcRe = /\b([a-zA-Z_]\w*)\s*\(/g;
+                let m;
+                while ((m = funcRe.exec(code)) !== null) {
+                    const name = m[1];
+                    if (!KEYWORD_BLOCKLIST.has(name) && !CPP_API[name]) {
+                        funcSet.add(name);
+                    }
+                }
             } catch (e) { /* ignore parse errors during live editing */ }
         };
 
@@ -1212,6 +1223,12 @@
                             seen.add(kw);
                         }
                     }
+                    for (const fn of funcSet) {
+                        if (!seen.has(fn)) {
+                            suggestions.push({ label: fn, kind: monaco.languages.CompletionItemKind.Function, insertText: fn, sortText: '05_' + fn, range: range });
+                            seen.add(fn);
+                        }
+                    }
                     for (const s of makeVariableSuggestions(varTable, monaco, range)) {
                         if (!seen.has(s.label)) { suggestions.push(s); seen.add(s.label); }
                     }
@@ -1256,11 +1273,21 @@
 
     function registerJavaCompletion(monaco) {
         let varTable = new Map();
+        let funcSet = new Set();
 
         const buildIndex = (model) => {
             try {
                 const code = model.getValue();
                 varTable = buildJavaVarTable(code, model, { lineNumber: 99999, column: 1 });
+                funcSet = new Set();
+                const funcRe = /\b([a-zA-Z_]\w*)\s*\(/g;
+                let m;
+                while ((m = funcRe.exec(code)) !== null) {
+                    const name = m[1];
+                    if (!KEYWORD_BLOCKLIST.has(name) && !JAVA_API[name]) {
+                        funcSet.add(name);
+                    }
+                }
             } catch (e) {}
         };
 
@@ -1309,6 +1336,12 @@
                             seen.add(kw);
                         }
                     }
+                    for (const fn of funcSet) {
+                        if (!seen.has(fn)) {
+                            suggestions.push({ label: fn, kind: monaco.languages.CompletionItemKind.Function, insertText: fn, sortText: '05_' + fn, range: range });
+                            seen.add(fn);
+                        }
+                    }
                     for (const s of makeVariableSuggestions(varTable, monaco, range)) {
                         if (!seen.has(s.label)) { suggestions.push(s); seen.add(s.label); }
                     }
@@ -1349,11 +1382,22 @@
 
     function registerPythonCompletion(monaco) {
         let varTable = new Map();
+        let funcSet = new Set();
 
         const buildIndex = (model) => {
             try {
                 const code = model.getValue();
                 varTable = buildPythonVarTable(code, model, { lineNumber: 99999, column: 1 });
+                funcSet = new Set();
+                // Python: def name( and name( patterns
+                const funcRe = /\b(?:def\s+)?([a-zA-Z_]\w*)\s*\(/g;
+                let m;
+                while ((m = funcRe.exec(code)) !== null) {
+                    const name = m[1];
+                    if (!KEYWORD_BLOCKLIST.has(name) && !PYTHON_API[name]) {
+                        funcSet.add(name);
+                    }
+                }
             } catch (e) {}
         };
 
@@ -1400,6 +1444,12 @@
                         if (!seen.has(kw)) {
                             suggestions.push({ label: kw, kind: monaco.languages.CompletionItemKind.Keyword, insertText: kw, sortText: '00_' + kw, range: range });
                             seen.add(kw);
+                        }
+                    }
+                    for (const fn of funcSet) {
+                        if (!seen.has(fn)) {
+                            suggestions.push({ label: fn, kind: monaco.languages.CompletionItemKind.Function, insertText: fn, sortText: '05_' + fn, range: range });
+                            seen.add(fn);
                         }
                     }
                     for (const s of makeVariableSuggestions(varTable, monaco, range)) {
@@ -1681,7 +1731,7 @@
                 console.warn('[LeetFill] Failed to register signature providers:', e.message);
             }
 
-            console.log('%c[LeetFill] v1.0.1 %cC++ | Java | Python — method completion, snippets, headers, signatures loaded.',
+            console.log('%c[LeetFill] v1.0.2 %cC++ | Java | Python — method completion, snippets, headers, signatures loaded.',
                 'background:#1a1a2e;color:#e94560;padding:2px 6px;font-weight:bold',
                 'color:#aaa');
         } catch (e) {
