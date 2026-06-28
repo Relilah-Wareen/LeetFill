@@ -41,4 +41,4 @@
 
 ---
 
-<p align="center">v1.0.0 · MIT 协议 · <a href="https://github.com/Relilah-Wareen/LeetFill">GitHub</a></p>
+<p align="center">v1.0.1 · MIT 协议 · <a href="https://github.com/Relilah-Wareen/LeetFill">GitHub</a></p>

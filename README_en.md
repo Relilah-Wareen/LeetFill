@@ -41,4 +41,4 @@ Open any LeetCode problem page, type `.` or `->` to see suggestions.
 
 ---
 
-<p align="center">v1.0.0 · MIT License · <a href="https://github.com/Relilah-Wareen/LeetFill">GitHub</a></p>
+<p align="center">v1.0.1 · MIT License · <a href="https://github.com/Relilah-Wareen/LeetFill">GitHub</a></p>
