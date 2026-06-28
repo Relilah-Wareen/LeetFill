@@ -287,6 +287,13 @@
         }
     ];
 
+    // --- C++ Keywords ---
+    const CPP_KEYWORDS = ['return', 'break', 'continue', 'true', 'false', 'nullptr',
+        'if', 'else', 'for', 'while', 'do', 'switch', 'case', 'default',
+        'struct', 'class', 'public', 'private', 'protected', 'virtual', 'override',
+        'const', 'static', 'constexpr', 'auto', 'sizeof', 'typedef', 'using', 'namespace',
+        'new', 'delete', 'this', 'template', 'typename', 'explicit', 'noexcept'];
+
     // --- C++ Standard Utility Functions ---
     const CPP_UTIL_FUNCTIONS = ['sort', 'reverse', 'max', 'min', 'abs', 'swap', 'gcd',
         'accumulate', 'lower_bound', 'upper_bound', 'binary_search', 'unique', 'find',
@@ -599,6 +606,13 @@
         }
     ];
 
+    // --- Java Keywords ---
+    const JAVA_KEYWORDS = ['return', 'break', 'continue', 'true', 'false', 'null',
+        'if', 'else', 'for', 'while', 'do', 'switch', 'case', 'default',
+        'class', 'public', 'private', 'protected', 'static', 'final', 'abstract',
+        'new', 'this', 'super', 'throws', 'try', 'catch', 'finally', 'void',
+        'int', 'long', 'double', 'float', 'char', 'boolean', 'byte', 'short'];
+
     // --- Python Built-in Type Methods ---
     const PYTHON_API = {
         'list': {
@@ -796,6 +810,12 @@
             detail: 'Print to stdout'
         }
     ];
+
+    // --- Python Keywords ---
+    const PYTHON_KEYWORDS = ['return', 'break', 'continue', 'True', 'False', 'None',
+        'if', 'else', 'elif', 'for', 'while', 'def', 'class', 'pass', 'yield',
+        'import', 'from', 'as', 'with', 'try', 'except', 'finally', 'raise',
+        'and', 'or', 'not', 'is', 'in', 'lambda', 'global', 'nonlocal', 'assert', 'del'];
 
     // --- Python Module Functions (not tied to a variable) ---
     const PYTHON_MODULE_FUNCTIONS = [
@@ -1186,6 +1206,12 @@
                     // --- Global suggestions ---
                     const suggestions = [];
                     const seen = new Set();
+                    for (const kw of CPP_KEYWORDS) {
+                        if (!seen.has(kw)) {
+                            suggestions.push({ label: kw, kind: monaco.languages.CompletionItemKind.Keyword, insertText: kw, sortText: '00_' + kw, range: range });
+                            seen.add(kw);
+                        }
+                    }
                     for (const s of makeVariableSuggestions(varTable, monaco, range)) {
                         if (!seen.has(s.label)) { suggestions.push(s); seen.add(s.label); }
                     }
@@ -1277,6 +1303,12 @@
                     const suggestions = [];
                     const seen = new Set();
 
+                    for (const kw of JAVA_KEYWORDS) {
+                        if (!seen.has(kw)) {
+                            suggestions.push({ label: kw, kind: monaco.languages.CompletionItemKind.Keyword, insertText: kw, sortText: '00_' + kw, range: range });
+                            seen.add(kw);
+                        }
+                    }
                     for (const s of makeVariableSuggestions(varTable, monaco, range)) {
                         if (!seen.has(s.label)) { suggestions.push(s); seen.add(s.label); }
                     }
@@ -1364,6 +1396,12 @@
                     const suggestions = [];
                     const seen = new Set();
 
+                    for (const kw of PYTHON_KEYWORDS) {
+                        if (!seen.has(kw)) {
+                            suggestions.push({ label: kw, kind: monaco.languages.CompletionItemKind.Keyword, insertText: kw, sortText: '00_' + kw, range: range });
+                            seen.add(kw);
+                        }
+                    }
                     for (const s of makeVariableSuggestions(varTable, monaco, range)) {
                         if (!seen.has(s.label)) { suggestions.push(s); seen.add(s.label); }
                     }
