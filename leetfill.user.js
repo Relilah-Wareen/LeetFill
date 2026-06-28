@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         LeetFill
 // @namespace    https://github.com/Relilah-Wareen/LeetFill
-// @version      1.0.0
+// @version      1.0.1
 // @description  Context-aware code completion for LeetCode's Monaco editor. Supports C++, Java, Python — container methods, algorithm snippets (for/while/dfs/bfs), variable type tracking, #include headers, and function signature hints.
 // @author       Relilah-Wareen
 // @license      MIT
@@ -1681,7 +1681,7 @@
                 console.warn('[LeetFill] Failed to register signature providers:', e.message);
             }
 
-            console.log('%c[LeetFill] v1.0.0 %cC++ | Java | Python — method completion, snippets, headers, signatures loaded.',
+            console.log('%c[LeetFill] v1.0.1 %cC++ | Java | Python — method completion, snippets, headers, signatures loaded.',
                 'background:#1a1a2e;color:#e94560;padding:2px 6px;font-weight:bold',
                 'color:#aaa');
         } catch (e) {
